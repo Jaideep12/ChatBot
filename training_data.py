@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 
-timeframes=['2006-01']
+timeframes=['2015-01']
 
 for timeframe in timeframes:
 	connection = sqlite3.connect('{}.db'.format(timeframe))
@@ -37,7 +37,3 @@ for timeframe in timeframes:
 		counter+=1
 		if counter % 20 ==0:
 			print(counter*limit,"rows completed so far")
-
-
-
-
