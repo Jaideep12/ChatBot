@@ -59,14 +59,14 @@ def sql_insert_replace_comment(commentid,parentid,parent,comment,subreddit,time,
 
 def sql_insert_has_parent(commentid,parentid,parent,comment,subreddit,time,score):
 	try:
-		sql="INSERT INTO parent_reply (parent_id=?,comment_id=?,parent=?,comment=?,subreddit=?,unix=?,score=?) VALUES('{}','{}','{}','{}','{}','{}','{}');".format(parentid,commentid,parent,comment,subreddit,time,score)
+		sql="""INSERT INTO parent_reply (parent_id,comment_id,parent,comment,subreddit,unix,score) VALUES("{}","{}","{}","{}","{}",{},{});""".format(parentid,commentid,parent,comment,subreddit,time,score)
 		transaction_bldr(sql)
 	except Exception as e:
 		print('has_parent', e)
 
 def sql_insert_no_parent(commentid,parentid,comment,subreddit,time,score):
 	try:
-		sql="INSERT INTO parent_reply (parent_id=?,comment_id=?,comment=?,subreddit=?,unix=?,score=?) VALUES('{}','{}','{}','{}','{}','{}');".format(parentid,commentid,comment,subreddit,time,score)
+		sql="""INSERT INTO parent_reply (parent_id,comment_id,comment,subreddit,unix,score) VALUES("{}","{}","{}","{}",{},{});""".format(parentid,commentid,comment,subreddit,time,score)
 		transaction_bldr(sql)
 	except Exception as e:
 		print('has_no_parent', e)
@@ -74,12 +74,14 @@ def sql_insert_no_parent(commentid,parentid,comment,subreddit,time,score):
 def transaction_bldr(sql):
 	global sql_transaction
 	sql_transaction.append(sql)
-	if len(sql_transaction)>1000:
+	if len(sql_transaction)>1:
 		c.execute('BEGIN TRANSACTION')
-		for s in sql:
+		for s in sql_transaction:
 			try:
 				c.execute(s)
-			except:
+				connection.commit()
+			except sqlite3.Error as error:
+				print("Failed to execute", error)
 				pass
 		connection.commit()
 		sql_transaction=[]
@@ -91,7 +93,7 @@ if __name__=="__main__":
 
 	with open("E:/ChatBot_Project/RC_2006-01",buffering=1000) as f:
 		for row in f:
-			print(row)
+			#print(row)
 			row_counter+=1
 			row=json.loads(row)
 			parent_id=row['parent_id']
@@ -102,8 +104,6 @@ if __name__=="__main__":
 			comment_id=row['id']
 
 			parent_data=find_parent(parent_id)
-
-
 
 			if score>=2:
 				if acceptable(body):
