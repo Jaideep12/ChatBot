@@ -2,7 +2,7 @@ import sqlite3
 import json
 from datetime import datetime
 
-timeframe='2006-01'
+timeframe='2015-01'
 
 sql_transaction=[]
 
@@ -18,7 +18,7 @@ def format_data(data):
 
 def find_parent(pid):
 	try:
-	    sql="SELECT comment,score FROM parent_reply WHERE comment_id = '{}' LIMIT 1".format(pid)
+	    sql="SELECT comment FROM parent_reply WHERE comment_id = '{}' LIMIT 1".format(pid)
 	    c.execute()
 	    result=c.fetchone()
 	    if result!=None:
@@ -74,7 +74,7 @@ def sql_insert_no_parent(commentid,parentid,comment,subreddit,time,score):
 def transaction_bldr(sql):
 	global sql_transaction
 	sql_transaction.append(sql)
-	if len(sql_transaction)>1:
+	if len(sql_transaction)>1000:
 		c.execute('BEGIN TRANSACTION')
 		for s in sql_transaction:
 			try:
@@ -91,7 +91,7 @@ if __name__=="__main__":
 	row_counter=0
 	paired_rows=0
 
-	with open("E:/ChatBot_Project/RC_2006-01",buffering=1000) as f:
+	with open("E:/ChatBot_Project/RC_2015-01",buffering=1000) as f:
 		for row in f:
 			#print(row)
 			row_counter+=1
@@ -101,7 +101,7 @@ if __name__=="__main__":
 			created_utc=row['created_utc']
 			score=row['score']
 			subreddit=row['subreddit']
-			comment_id=row['id']
+			comment_id=row['name']
 
 			parent_data=find_parent(parent_id)
 
@@ -114,6 +114,7 @@ if __name__=="__main__":
 
 					else:
 						if parent_data:
+							print("Parent present")
 							sql_insert_has_parent(comment_id,parent_id,parent_data,body,subreddit,created_utc,score)
 							paired_rows+=1
 						else:
